@@ -1,0 +1,8 @@
+{
+  "name": "jarvis",
+  "version": "1.0.0",
+  "description": "J.A.R.V.I.S. - Personal AI Assistant",
+  "engines": {
+    "node": ">=18"
+  }
+}
