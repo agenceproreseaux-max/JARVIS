@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>J.A.R.V.I.S.</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #00d4ff; --blue-dim: #0088aa; --blue-dark: #003344;
+      --red: #ff3b3b; --gold: #ffd700; --bg: #000a0f;
+      --panel: rgba(0, 180, 220, 0.05); --border: rgba(0, 212, 255, 0.25);
+      --glow: 0 0 20px rgba(0, 212, 255, 0.4);
+    }
+    body { background: var(--bg); color: var(--blue); font-family: 'Rajdhani', sans-serif; height: 100vh; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,212,255,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0,212,255,0.04) 1px, transparent 1px); background-size: 50px 50px; animation: gridMove 20s linear infinite; z-index: 0; }
+    @keyframes gridMove { 0% { transform: translateY(0); } 100% { transform: translateY(50px); } }
+    .container { position: relative; z-index: 1; width: 100%; max-width: 900px; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+    .header { text-align: center; }
+    .header h1 { font-family: 'Orbitron', monospace; font-size: 2.8rem; font-weight: 900; letter-spacing: 0.3em; color: var(--blue); text-shadow: 0 0 30px rgba(0,212,255,0.8), 0 0 60px rgba(0,212,255,0.3); }
+    .header p { font-size: 0.75rem; letter-spacing: 0.4em; color: var(--blue-dim); margin-top: 4px; }
+    .arc-reactor { width: 160px; height: 160px; position: relative; cursor: pointer; }
+    .arc-reactor svg { width: 100%; height: 100%; animation: rotateSlow 12s linear infinite; }
+    @keyframes rotateSlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .arc-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+    .arc-inner { width: 60px; height: 60px; border-radius: 50%; background: radial-gradient(circle, #ffffff 0%, #00d4ff 40%, #0044aa 100%); box-shadow: 0 0 30px #00d4ff, 0 0 60px #00d4ff, 0 0 100px rgba(0,212,255,0.5); animation: pulse 2s ease-in-out infinite; transition: all 0.3s ease; }
+    .arc-inner.listening { background: radial-gradient(circle, #ffffff 0%, #ff6b6b 40%, #aa0000 100%); box-shadow: 0 0 30px #ff3b3b, 0 0 60px #ff3b3b, 0 0 100px rgba(255,59,59,0.5); animation: pulseRed 0.5s ease-in-out infinite; }
+    .arc-inner.speaking { background: radial-gradient(circle, #ffffff 0%, #ffd700 40%, #aa7700 100%); box-shadow: 0 0 30px #ffd700, 0 0 60px #ffd700, 0 0 100px rgba(255,215,0,0.5); animation: pulseSpeaking 0.3s ease-in-out infinite; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.08); opacity: 0.85; } }
+    @keyframes pulseRed { 0%, 100% { transform: scale(1.1); } 50% { transform: scale(1.25); } }
+    @keyframes pulseSpeaking { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+    .status-bar { display: flex; align-items: center; gap: 10px; font-family: 'Orbitron', monospace; font-size: 0.65rem; letter-spacing: 0.2em; color: var(--blue-dim); }
+    .status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--blue); animation: blink 1.5s ease-in-out infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+    #statusText { color: var(--blue); transition: color 0.3s; }
+    .chat-panel { width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: 4px; padding: 16px; height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; box-shadow: var(--glow), inset 0 0 30px rgba(0,212,255,0.03); scrollbar-width: thin; scrollbar-color: var(--blue-dim) transparent; }
+    .chat-panel::-webkit-scrollbar { width: 3px; }
+    .chat-panel::-webkit-scrollbar-thumb { background: var(--blue-dim); border-radius: 2px; }
+    .message { display: flex; gap: 10px; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+    .message.user { justify-content: flex-end; }
+    .msg-label { font-family: 'Orbitron', monospace; font-size: 0.55rem; letter-spacing: 0.15em; color: var(--blue-dim); white-space: nowrap; margin-top: 2px; }
+    .msg-text { background: rgba(0,212,255,0.08); border: 1px solid var(--border); border-radius: 2px; padding: 8px 12px; font-size: 0.95rem; line-height: 1.5; max-width: 75%; }
+    .message.user .msg-text { background: rgba(0,212,255,0.12); border-color: rgba(0,212,255,0.4); color: #ffffff; }
+    .message.jarvis .msg-text { color: var(--blue); }
+    .input-row { display: flex; width: 100%; gap: 10px; align-items: center; }
+    .input-wrapper { flex: 1; position: relative; }
+    .input-wrapper::before { content: '> '; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--blue-dim); font-family: 'Orbitron', monospace; font-size: 0.7rem; pointer-events: none; }
+    #textInput { width: 100%; background: var(--panel); border: 1px solid var(--border); border-radius: 2px; padding: 12px 12px 12px 36px; color: var(--blue); font-family: 'Rajdhani', sans-serif; font-size: 1rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s; }
+    #textInput:focus { border-color: var(--blue); box-shadow: var(--glow); }
+    #textInput::placeholder { color: var(--blue-dim); opacity: 0.5; }
+    .btn { background: transparent; border: 1px solid var(--border); color: var(--blue); padding: 12px 20px; font-family: 'Orbitron', monospace; font-size: 0.65rem; letter-spacing: 0.15em; cursor: pointer; transition: all 0.2s; border-radius: 2px; white-space: nowrap; }
+    .btn:hover { background: rgba(0,212,255,0.12); border-color: var(--blue); box-shadow: var(--glow); }
+    .btn.active { background: rgba(255,59,59,0.15); border-color: var(--red); color: var(--red); box-shadow: 0 0 20px rgba(255,59,59,0.3); }
+    .deco-bars { display: flex; gap: 4px; align-items: flex-end; height: 24px; }
+    .deco-bar { width: 3px; background: var(--blue); opacity: 0.4; border-radius: 1px; animation: barAnim 1.5s ease-in-out infinite; }
+    .deco-bar:nth-child(1) { height: 8px; } .deco-bar:nth-child(2) { height: 16px; animation-delay: 0.1s; } .deco-bar:nth-child(3) { height: 24px; animation-delay: 0.2s; } .deco-bar:nth-child(4) { height: 12px; animation-delay: 0.3s; } .deco-bar:nth-child(5) { height: 20px; animation-delay: 0.4s; } .deco-bar:nth-child(6) { height: 6px; animation-delay: 0.5s; } .deco-bar:nth-child(7) { height: 18px; animation-delay: 0.6s; }
+    @keyframes barAnim { 0%, 100% { opacity: 0.4; transform: scaleY(1); } 50% { opacity: 0.8; transform: scaleY(1.3); } }
+    .deco-bars.active .deco-bar { opacity: 0.9; animation-duration: 0.3s; }
+    .hint { font-size: 0.7rem; color: var(--blue-dim); letter-spacing: 0.15em; opacity: 0.6; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>J.A.R.V.I.S.</h1>
+    <p>JUST A RATHER VERY INTELLIGENT SYSTEM</p>
+  </div>
+  <div class="arc-reactor" onclick="toggleListening()" title="Cliquez ou dites 'Hey Jarvis'">
+    <svg viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="80" cy="80" r="75" stroke="rgba(0,212,255,0.2)" stroke-width="1"/>
+      <circle cx="80" cy="80" r="68" stroke="rgba(0,212,255,0.15)" stroke-width="0.5"/>
+      <path d="M80 5 A75 75 0 0 1 155 80" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M155 80 A75 75 0 0 1 80 155" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+      <path d="M80 155 A75 75 0 0 1 5 80" stroke="#00d4ff" stroke-width="2" stroke-linecap="round"/>
+      <path d="M5 80 A75 75 0 0 1 80 5" stroke="#00d4ff" stroke-width="1" stroke-linecap="round" opacity="0.4"/>
+      <circle cx="80" cy="80" r="50" stroke="rgba(0,212,255,0.3)" stroke-width="1" stroke-dasharray="4 4"/>
+      <path d="M80 12 L86 22 L74 22 Z" fill="#00d4ff" opacity="0.8"/>
+      <path d="M80 148 L86 138 L74 138 Z" fill="#00d4ff" opacity="0.8"/>
+      <path d="M12 80 L22 74 L22 86 Z" fill="#00d4ff" opacity="0.8"/>
+      <path d="M148 80 L138 74 L138 86 Z" fill="#00d4ff" opacity="0.8"/>
+    </svg>
+    <div class="arc-center">
+      <div class="arc-inner" id="arcInner"></div>
+    </div>
+  </div>
+  <div class="status-bar">
+    <div class="status-dot"></div>
+    <span id="statusText">EN ATTENTE — DITES "HEY JARVIS"</span>
+    <div class="status-dot"></div>
+  </div>
+  <div class="chat-panel" id="chatPanel">
+    <div class="message jarvis">
+      <div>
+        <div class="msg-label">J.A.R.V.I.S.</div>
+        <div class="msg-text">Systèmes en ligne. Bonjour, Monsieur. Comment puis-je vous assister aujourd'hui ?</div>
+      </div>
+    </div>
+  </div>
+  <div class="input-row">
+    <div class="input-wrapper">
+      <input type="text" id="textInput" placeholder="Tapez votre message..." onkeydown="handleKey(event)"/>
+    </div>
+    <button class="btn" onclick="sendText()">ENVOYER</button>
+    <button class="btn" id="micBtn" onclick="toggleListening()">🎤 MIC</button>
+  </div>
+  <div class="deco-bars" id="decoBars">
+    <div class="deco-bar"></div><div class="deco-bar"></div><div class="deco-bar"></div>
+    <div class="deco-bar"></div><div class="deco-bar"></div><div class="deco-bar"></div>
+    <div class="deco-bar"></div>
+  </div>
+  <div class="hint">DITES "HEY JARVIS" POUR ACTIVER — CLIQUEZ SUR L'ARC POUR PARLER</div>
+</div>
+<script>
+  let conversationHistory = [], isListening = false, recognition = null, wakeWordRecognition = null, isSpeaking = false;
+  const arcInner = document.getElementById('arcInner');
+  const statusText = document.getElementById('statusText');
+  const micBtn = document.getElementById('micBtn');
+  const decoBars = document.getElementById('decoBars');
+  const chatPanel = document.getElementById('chatPanel');
+
+  function startWakeWordListener() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    wakeWordRecognition = new SR();
+    wakeWordRecognition.continuous = true;
+    wakeWordRecognition.interimResults = false;
+    wakeWordRecognition.lang = 'fr-FR';
+    wakeWordRecognition.onresult = (e) => {
+      const transcript = e.results[e.results.length - 1][0].transcript.toLowerCase().trim();
+      if ((transcript.includes('jarvis') || transcript.includes('jarvi')) && !isListening && !isSpeaking) startListening();
+    };
+    wakeWordRecognition.onend = () => { if (!isListening) setTimeout(() => { try { wakeWordRecognition.start(); } catch(e){} }, 500); };
+    try { wakeWordRecognition.start(); } catch(e) {}
+  }
+
+  function toggleListening() { isListening ? stopListening() : startListening(); }
+
+  function startListening() {
+    if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) { setStatus("RECONNAISSANCE VOCALE NON SUPPORTÉE"); return; }
+    try { wakeWordRecognition?.stop(); } catch(e) {}
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SR();
+    recognition.lang = 'fr-FR';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onstart = () => { isListening = true; arcInner.className = 'arc-inner listening'; micBtn.classList.add('active'); decoBars.classList.add('active'); setStatus("ÉCOUTE EN COURS..."); };
+    recognition.onresult = (e) => { sendMessage(e.results[0][0].transcript); };
+    recognition.onend = () => { isListening = false; if (!isSpeaking) arcInner.className = 'arc-inner'; micBtn.classList.remove('active'); decoBars.classList.remove('active'); setStatus('EN ATTENTE — DITES "HEY JARVIS"'); setTimeout(() => { try { wakeWordRecognition?.start(); } catch(e){} }, 800); };
+    recognition.onerror = () => { isListening = false; arcInner.className = 'arc-inner'; micBtn.classList.remove('active'); setStatus("ERREUR MICRO — RÉESSAYEZ"); setTimeout(() => { try { wakeWordRecognition?.start(); } catch(e){} }, 1000); };
+    recognition.start();
+  }
+
+  function stopListening() { recognition?.stop(); }
+  function handleKey(e) { if (e.key === 'Enter') sendText(); }
+  function sendText() { const input = document.getElementById('textInput'); const msg = input.value.trim(); if (!msg) return; input.value = ''; sendMessage(msg); }
+
+  async function sendMessage(text) {
+    addMessage('user', text);
+    setStatus("TRAITEMENT EN COURS...");
+    arcInner.className = 'arc-inner speaking';
+    try {
+      const res = await fetch('/.netlify/functions/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, history: conversationHistory }) });
+      const data = await res.json();
+      const reply = data.reply;
+      conversationHistory.push({ role: 'user', content: text }, { role: 'assistant', content: reply });
+      if (conversationHistory.length > 20) conversationHistory = conversationHistory.slice(-20);
+      addMessage('jarvis', reply);
+      await speak(reply);
+    } catch (err) {
+      addMessage('jarvis', "Erreur de connexion, Monsieur. Vérifiez les systèmes.");
+      arcInner.className = 'arc-inner';
+      setStatus("ERREUR — EN ATTENTE");
+    }
+  }
+
+  async function speak(text) {
+    isSpeaking = true; arcInner.className = 'arc-inner speaking'; setStatus("J.A.R.V.I.S. PARLE..."); decoBars.classList.add('active');
+    try {
+      const res = await fetch('/.netlify/functions/tts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ text }) });
+      const data = await res.json();
+      const audio = new Audio('data:audio/mpeg;base64,' + data.audio);
+      await new Promise((resolve) => { audio.onended = resolve; audio.onerror = resolve; audio.play().catch(resolve); });
+    } catch (e) {
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = 'fr-FR'; utter.rate = 0.9; utter.pitch = 0.8;
+      await new Promise(r => { utter.onend = r; speechSynthesis.speak(utter); });
+    }
+    isSpeaking = false; arcInner.className = 'arc-inner'; decoBars.classList.remove('active'); setStatus('EN ATTENTE — DITES "HEY JARVIS"');
+  }
+
+  function addMessage(role, text) {
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+    div.innerHTML = `<div><div class="msg-label">${role === 'user' ? 'VOUS' : 'J.A.R.V.I.S.'}</div><div class="msg-text">${text}</div></div>`;
+    chatPanel.appendChild(div);
+    chatPanel.scrollTop = chatPanel.scrollHeight;
+  }
+
+  function setStatus(msg) { statusText.textContent = msg; }
+  window.addEventListener('load', startWakeWordListener);
+</script>
+</body>
+</html>
